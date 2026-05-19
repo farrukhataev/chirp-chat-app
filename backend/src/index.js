@@ -28,9 +28,17 @@ const __dirname = path.resolve();
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ limit: "10mb", extended: true }));
 app.use(cookieParser());
+
+// CORS configuration - allow localhost on any port and FRONTEND_URL
+const corsOrigins = [FRONTEND_URL];
+// In development, allow all localhost:* ports
+if (process.env.NODE_ENV !== "production") {
+  corsOrigins.push(/^http:\/\/localhost:\d{4,5}$/);
+}
+
 app.use(
   cors({
-    origin: [FRONTEND_URL, "http://localhost:5174"],
+    origin: corsOrigins,
     credentials: true,
   }),
 );
