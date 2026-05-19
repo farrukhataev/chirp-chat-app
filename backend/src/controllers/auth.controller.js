@@ -1,5 +1,5 @@
 import cloudinary from "../lib/cloudinary.js";
-import { genereteToken } from "../lib/utils.js";
+import { generateToken } from "../lib/utils.js";
 import User from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 
@@ -30,7 +30,7 @@ export const signup = async (req, res) => {
     });
 
     if (newUser) {
-      genereteToken(newUser._id, res);
+      generateToken(newUser._id, res);
       await newUser.save();
 
       res.status(201).json({
@@ -70,7 +70,7 @@ export const login = async (req, res) => {
       return res.status(400).json({ message: "Invalid email or password" });
     }
 
-    genereteToken(user._id, res);
+    generateToken(user._id, res);
 
     res.status(200).json({
       _id: user._id,
