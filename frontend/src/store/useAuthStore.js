@@ -99,30 +99,24 @@ export const useAuthStore = create((set, get) => ({
 
     // Show notification when user successfully connects
     socket.on("connect", () => {
+      console.log("✅ Подключено к серверу");
       toast.success("✅ Подключено к чату");
     });
 
+    // Listen for online users list updates
     socket.on("getOnlineUsers", (userIds) => {
+      console.log("Online users:", userIds);
       const previousUsers = get().onlineUsers;
       set({ onlineUsers: userIds });
 
-      // Show notification for new users connecting
-      const newUsers = userIds.filter((id) => !previousUsers.includes(id));
-      newUsers.forEach((userId) => {
-        if (userId !== authUser._id) {
-          toast.success("👤 в сети ");
-        }
-      });
-    });
-
-    // Listen for user status changes
-    socket.on("userStatusChanged", (data) => {
-      console.log("User status changed:", data);
-      // Update online users list if needed
-      const { authUser } = get();
-      if (authUser) {
-        // Refresh online users
-        socket.emit("getOnlineUsers");
+      // Show notification for newly connected users (not on initial load)
+      if (previousUsers.length > 0) {
+        const newUsers = userIds.filter((id) => !previousUsers.includes(id));
+        newUsers.forEach((userId) => {
+          if (userId !== authUser._id) {
+            toast.success("👤 Пользователь вошел в сеть");
+          }
+        });
       }
     });
 
@@ -130,20 +124,29 @@ export const useAuthStore = create((set, get) => ({
     socket.on("userOffline", (userId) => {
       console.log("User went offline:", userId);
       const currentOnlineUsers = get().onlineUsers;
-      set({
-        onlineUsers: currentOnlineUsers.filter((id) => id !== userId),
-      });
+      const updatedUsers = currentOnlineUsers.filter((id) => id !== userId);
+      set({ onlineUsers: updatedUsers });
+      
       // Show notification when user goes offline
       if (userId !== authUser._id) {
         toast.error("👋 Пользователь вышел из сети");
       }
     });
 
-    // Global listener for incoming messages
+    // Global listener for incoming messages with real-time notification
     socket.on("newMessage", (newMessage) => {
-      console.log("Global message received:", newMessage);
+      console.log("📨 Новое сообщение получено:", newMessage);
+      const senderName = newMessage.senderName || "Неизвестный пользователь";
+      const messagePreview = newMessage.text 
+        ? newMessage.text.substring(0, 50) + (newMessage.text.length > 50 ? "..." : "")
+        : "📸 Отправлена фотография";
+      
       toast.success(
-        `💬 Новое сообщение от ${newMessage.senderName || "Someone"}`,
+        `💬 ${senderName}: ${messagePreview}`,
+        {
+          duration: 4000,
+          icon: "💬",
+        }
       );
     });
   },

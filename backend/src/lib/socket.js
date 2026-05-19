@@ -38,10 +38,14 @@ io.on("connection", (socket) => {
     userSocketMap[userId] = socket.id;
     socket.data = socket.data || {};
     socket.data.userId = userId;
+    console.log("User registered:", userId, "Online users now:", Object.keys(userSocketMap));
   }
 
-  // io.emit() is used to send events to all the connected clients
-  io.emit("getOnlineUsers", Object.keys(userSocketMap));
+  // Send current online users list to the connected client
+  socket.emit("getOnlineUsers", Object.keys(userSocketMap));
+  
+  // Broadcast to all clients that someone came online
+  socket.broadcast.emit("getOnlineUsers", Object.keys(userSocketMap));
 
   // User status change event
   socket.on("userStatusChange", (data) => {

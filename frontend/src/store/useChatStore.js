@@ -53,7 +53,8 @@ export const useChatStore = create((set, get) => ({
     const socket = useAuthStore.getState().socket;
     if (!socket) return;
 
-    socket.on("newMessage", (newMessage) => {
+    // Create a unique listener for this specific user
+    const messageHandler = (newMessage) => {
       const { selectedUser: currentSelectedUser } = get();
 
       // Only add messages from the selected user to the chat
@@ -61,17 +62,26 @@ export const useChatStore = create((set, get) => ({
         currentSelectedUser &&
         newMessage.senderId === currentSelectedUser._id
       ) {
+        console.log("💬 Новое сообщение добавлено в чат:", newMessage);
         set({
           messages: [...get().messages, newMessage],
         });
       }
-    });
+    };
+
+    // Store the handler for cleanup
+    get()._messageHandler = messageHandler;
+    socket.on("newMessage", messageHandler);
   },
 
   unsubscribeFromMessages: () => {
     const socket = useAuthStore.getState().socket;
     if (!socket) return;
-    socket.off("newMessage");
+    // Only remove the specific handler, not all newMessage listeners
+    if (get()._messageHandler) {
+      socket.off("newMessage", get()._messageHandler);
+      get()._messageHandler = null;
+    }
   },
 
   setSelectedUser: (selectedUser) => set({ selectedUser }),
