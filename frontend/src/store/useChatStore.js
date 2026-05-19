@@ -55,9 +55,12 @@ export const useChatStore = create((set, get) => ({
 
     socket.on("newMessage", (newMessage) => {
       const { selectedUser: currentSelectedUser } = get();
-      
+
       // Only add messages from the selected user to the chat
-      if (currentSelectedUser && newMessage.senderId === currentSelectedUser._id) {
+      if (
+        currentSelectedUser &&
+        newMessage.senderId === currentSelectedUser._id
+      ) {
         set({
           messages: [...get().messages, newMessage],
         });

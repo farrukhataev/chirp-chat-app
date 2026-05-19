@@ -34,7 +34,7 @@ export const useAuthStore = create((set, get) => ({
     try {
       const res = await axiosInstance.post("/auth/signup", data);
       set({ authUser: res.data });
-      toast.success("Account created successfully");
+      toast.success("Аккаунт успешно создан");
       get().connectSocket();
     } catch (error) {
       toast.error(error.response.data.message);
@@ -48,7 +48,7 @@ export const useAuthStore = create((set, get) => ({
     try {
       const res = await axiosInstance.post("/auth/login", data);
       set({ authUser: res.data });
-      toast.success("Logged in successfully");
+      toast.success("Вход выполнен успешно");
 
       get().connectSocket();
     } catch (error) {
@@ -62,7 +62,7 @@ export const useAuthStore = create((set, get) => ({
     try {
       await axiosInstance.post("/auth/logout");
       set({ authUser: null });
-      toast.success("Logged out successfully");
+      toast.success("Выход выполнен успешно");
       get().disconnectSocket();
     } catch (error) {
       toast.error(error.response.data.message);
@@ -74,7 +74,7 @@ export const useAuthStore = create((set, get) => ({
     try {
       const res = await axiosInstance.put("/auth/update-profile", data);
       set({ authUser: res.data });
-      toast.success("Profile updated successfully");
+      toast.success("Профиль успешно обновлен");
       return res.data;
     } catch (error) {
       console.log("error in update profile:", error);
@@ -99,18 +99,18 @@ export const useAuthStore = create((set, get) => ({
 
     // Show notification when user successfully connects
     socket.on("connect", () => {
-      toast.success("✅ Connected to chat server");
+      toast.success("✅ Подключено к чату");
     });
 
     socket.on("getOnlineUsers", (userIds) => {
       const previousUsers = get().onlineUsers;
       set({ onlineUsers: userIds });
-      
+
       // Show notification for new users connecting
       const newUsers = userIds.filter((id) => !previousUsers.includes(id));
       newUsers.forEach((userId) => {
         if (userId !== authUser._id) {
-          toast.success("👤 A user just came online");
+          toast.success("👤 в сети ");
         }
       });
     });
@@ -135,14 +135,16 @@ export const useAuthStore = create((set, get) => ({
       });
       // Show notification when user goes offline
       if (userId !== authUser._id) {
-        toast.error("👋 A user went offline");
+        toast.error("👋 Пользователь вышел из сети");
       }
     });
 
     // Global listener for incoming messages
     socket.on("newMessage", (newMessage) => {
       console.log("Global message received:", newMessage);
-      toast.success(`💬 New message from ${newMessage.senderName || "Someone"}`);
+      toast.success(
+        `💬 Новое сообщение от ${newMessage.senderName || "Someone"}`,
+      );
     });
   },
   disconnectSocket: () => {
