@@ -97,8 +97,22 @@ export const useAuthStore = create((set, get) => ({
 
     set({ socket: socket });
 
+    // Show notification when user successfully connects
+    socket.on("connect", () => {
+      toast.success("✅ Connected to chat server");
+    });
+
     socket.on("getOnlineUsers", (userIds) => {
+      const previousUsers = get().onlineUsers;
       set({ onlineUsers: userIds });
+      
+      // Show notification for new users connecting
+      const newUsers = userIds.filter((id) => !previousUsers.includes(id));
+      newUsers.forEach((userId) => {
+        if (userId !== authUser._id) {
+          toast.success("👤 A user just came online");
+        }
+      });
     });
 
     // Listen for user status changes
@@ -119,6 +133,16 @@ export const useAuthStore = create((set, get) => ({
       set({
         onlineUsers: currentOnlineUsers.filter((id) => id !== userId),
       });
+      // Show notification when user goes offline
+      if (userId !== authUser._id) {
+        toast.error("👋 A user went offline");
+      }
+    });
+
+    // Global listener for incoming messages
+    socket.on("newMessage", (newMessage) => {
+      console.log("Global message received:", newMessage);
+      toast.success(`💬 New message from ${newMessage.senderName || "Someone"}`);
     });
   },
   disconnectSocket: () => {
